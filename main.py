@@ -1,0 +1,44 @@
+from Source.Generator import Generator, Options
+
+from dublib.CLI.Terminalyzer import Command, ParametersTypes, Terminalyzer
+from dublib.Methods.Filesystem import WriteTextFile
+
+import os
+
+Commands = list()
+
+Com = Command("init", "Create module files. Run after installation.")
+Commands.append(Com)
+
+Com = Command("generate", "Generate content.")
+ComPos = Com.create_position("REQUEST", "Request text.", important = True)
+ComPos.add_argument()
+Com.base.add_flag("proxy", "Force random proxy using.")
+Com.base.add_key("language", ParametersTypes.Text, "Language code in ISO 639-1 format.")
+Com.base.add_key("length", ParametersTypes.Number, "Max response length.")
+Com.base.add_key("tries", ParametersTypes.Number, "Max generation tries.")
+Com.base.add_key("timeout", ParametersTypes.Number, "Response generation timeout.")
+Com.base.add_key("model", description = "Name of model. Default to \"gpt-4o\".")
+Commands.append(Com)
+
+Analyzer = Terminalyzer()
+Analyzer.helper.enable()
+CommandData = Analyzer.check_commands(Commands)
+
+if not CommandData:
+	print("Unknown command!")
+	exit(-1)
+
+match CommandData.name:
+
+	case "init":
+		if not os.path.exists("Proxies.txt"): WriteTextFile("Proxies.txt", "")
+
+	case "generate":
+		CurrentOptions = Options()
+		CurrentOptions.set_language(CommandData.get_key_value("language"))
+		CurrentOptions.set_max_length(CommandData.get_key_value("length"))
+		CurrentOptions.set_tries(CommandData.get_key_value("tries"))
+		CurrentOptions.set_timeout(CommandData.get_key_value("timeout"))
+		CurrentOptions.set_force_proxy(CommandData.check_flag("proxy"))
+		print(Generator(CurrentOptions).generate_with_timeout(CommandData.arguments[0]))

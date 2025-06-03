@@ -1,0 +1,4 @@
+fastapi
+uvicorn
+dublib==0.19.1
+g4f==0.5.3.1
