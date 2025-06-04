@@ -318,22 +318,24 @@ class Generator:
 
 		return bool(re.match(r"^[А-Яа-яЁё\s.,:;!?()\-\–«»\"\'\[\]{}]+$", text, re.IGNORECASE))
 	
-	def __ValidateText(self, text: str | None) -> str | Errors:
+	def __ValidateText(self, text: str | None, options: Options) -> str | Errors:
 		"""
 		Обрабатывает текст согласно параметрам и проводит его отбраковку.
 
 		:param text: Обрабатываемый текст.
 		:type text: str
+		:param options: Опции генерации.
+		:type options: Options
 		:return: Обработанный текст или тип ошибки.
 		:rtype: str | Errors
 		"""
 
 		if not text: return Errors.EmptyResponse
 
-		if self.__Options.only_plaint_text: text = HTML(text).plain_text
+		if options.only_plaint_text: text = HTML(text).plain_text
 
-		if self.__Options.max_length and len(text) > self.__Options.max_length: return Errors.MaxLengthExceeded
-		if self.__Options.language and self.__Options.language == Languages.Russian and not self.__IsRussian(text): return Errors.IncorrectResponseLanguage
+		if options.max_length and len(text) > options.max_length: return Errors.MaxLengthExceeded
+		if options.language and options.language == Languages.Russian and not self.__IsRussian(text): return Errors.IncorrectResponseLanguage
 
 		if text in (
 			"You have reached your request limit for the hour.",
@@ -345,75 +347,73 @@ class Generator:
 	# >>>>> ПУБЛИЧНЫЕ МЕТОДЫ <<<<< #
 	#==========================================================================================#
 
-	def __init__(self, options: Options):
-		"""
-		Обработчик запросов к нейросетям.
+	def __init__(self):
+		"""Обработчик запросов к нейросетям."""
 
-		:param options: Опции генерации.
-		:type options: Options
-		"""
-
-		self.__Options = options
-
-		self.__Response = Response()
 		self.__Proxies: tuple[Proxy] = tuple()
+		self.__Client = Client()
 
 		self.__ReadProxy()
 
-	def generate(self, request: str) -> Response:
+	def generate(self, request: str, options: Options) -> Response:
 		"""
 		Генерирует ответ нейросети.
 
 		:param request: Текст запроса.
 		:type request: str
+		:param options: Опции генерации.
+		:type options: Options
 		:return: Контейнер ответа нейросети.
 		:rtype: Response
 		"""
 
-		ClientObject = Client()
+		CurrentResponse = Response()
 
-		while self.__Response.current_try <= self.__Options.tries and not self.__Response.text:
+		while CurrentResponse.current_try <= options.tries and not CurrentResponse.text:
 			
 			if self.__Proxies: 
-				if self.__Response.get_error_count(Errors.RequestBlocked) or self.__Options.force_proxy:
-					ClientObject = Client(proxies = random.choice(self.__Proxies).to_dict())
+				if CurrentResponse.get_error_count(Errors.RequestBlocked) or options.force_proxy:
+					self.__Client = Client(proxies = random.choice(self.__Proxies).to_dict())
 
 			try:
-				ResponseData = ClientObject.chat.completions.create(model = self.__Options.model, messages = [{"role": "user", "content": request}])
-				ValidatedData = self.__ValidateText(ResponseData.choices[0].message.content.strip())
+				ResponseData = self.__Client.chat.completions.create(model = options.model, messages = [{"role": "user", "content": request}])
+				ValidatedData = self.__ValidateText(ResponseData.choices[0].message.content.strip(), options)
 
 				if type(ValidatedData) == str:
-					self.__Response.set_text(ValidatedData)
+					CurrentResponse.set_text(ValidatedData)
 					break
 
-				else: self.__Response.push_error(ValidatedData)
+				else: CurrentResponse.push_error(ValidatedData)
 
 			except KeyboardInterrupt: break
-			except Exception as ExceptionData: self.__Response.push_message(str(ExceptionData))
+			except Exception as ExceptionData: CurrentResponse.push_message(str(ExceptionData))
 
-			self.__Response.increment_try()
+			CurrentResponse.increment_try()
 
-		if self.__Response.current_try > self.__Options.tries: self.__Response.set_try(self.__Options.tries)
-		self.__Response.stop_timer()
+		if CurrentResponse.current_try > options.tries: CurrentResponse.set_try(options.tries)
+		CurrentResponse.stop_timer()
 
-		return self.__Response
+		return CurrentResponse
 	
-	def generate_with_timeout(self, request: str) -> Response:
+	def generate_with_timeout(self, request: str, options: Options) -> Response:
 		"""
 		Генерирует ответ нейросети и обрабатывает таймаут генерации. Может использоваться только из главного потока процесса.
 
 		:param request: Текст запроса.
 		:type request: str
+		:param options: Опции генерации.
+		:type options: Options
 		:return: Контейнер ответа нейросети.
 		:rtype: Response
 		"""
 
+		CurrentResponse = Response()
 		signal.signal(signal.SIGALRM, self.__RaiseTimeoutException)
-		signal.alarm(self.__Options.timeout)
+		signal.alarm(options.timeout)
 
 		try: self.generate(request)
-		except TimeoutException: self.__Response.push_error(Errors.TimeoutReached)
+		except TimeoutException as ExceptionData: CurrentResponse.push_error(Errors.TimeoutReached)
 
 		signal.alarm(0)
 
-		return self.__Response
+		return CurrentResponse

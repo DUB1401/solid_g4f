@@ -10,6 +10,8 @@ from fastapi import FastAPI
 
 api = FastAPI()
 
+NeuroGenerator = Generator()
+
 class RequestData(BaseModel):
 	"""Структура запроса."""
 	
@@ -34,6 +36,6 @@ def generate(data: RequestData):
 	CurrentOptions.set_timeout(data.timeout)
 	CurrentOptions.set_model(data.model)
 	CurrentOptions.set_force_proxy(data.proxy)
-	Response = Generator(CurrentOptions).generate(data.request)
+	Response = NeuroGenerator.generate(data.request, CurrentOptions)
 									
 	return Response.to_dict()
