@@ -1,24 +1,16 @@
 from Source.Structs.Options import Options
 from Source.Generators import Generate
+from Source.Initializator import *
 
 from dublib.Methods.Filesystem import ReadTextFile
 
 from typing import Optional
-import logging
 
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from fastapi import FastAPI
 
 api = FastAPI()
-
-logging.basicConfig(
-	filename = "logs.log",
-	encoding = "utf-8",
-	level = logging.INFO,
-	format = "%(asctime)s %(levelname)s: %(message)s",
-	datefmt = "%Y-%m-%d %H:%M:%S"
-)
 
 class RequestData(BaseModel):
 	"""Структура запроса."""

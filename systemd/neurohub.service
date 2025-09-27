@@ -1,0 +1,20 @@
+# Скрипт инициализации сервиса neurohub.
+#==========================================================================================#
+# {Application Directory} – путь к директории со скриптом.
+# {Port} – номер порта. По умолчанию 8000.
+
+[Unit]
+Description=NeuroHub
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory={Application Directory}
+ExecStart=/bin/bash -c "source .venv/bin/activate && uvicorn server:api --port {Port}"
+Restart=on-failure
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target

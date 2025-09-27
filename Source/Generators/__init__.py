@@ -1,12 +1,8 @@
-from .gpt4free import Generator as g4f
+from ..Structs import Errors, Options, Response
+from . import gpt4free
+from . import gemini
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-	from ..Structs.Response import Response
-	from ..Structs.Options import Options
-
-def Generate(request: str, options: "Options") -> "Response":
+def Generate(request: str, options: Options) -> Response:
 	"""
 	Генерирует контент по запросу.
 
@@ -19,8 +15,13 @@ def Generate(request: str, options: "Options") -> "Response":
 	"""
 
 	Generator = None
+	NeuroResponse = Response()
+	NeuroResponse.push_error(Errors.SourceNotFound)
 
 	match options.source:
-		case "g4f": Generator = g4f()
+		case "g4f": Generator = gpt4free.Generator()
+		case "gemini": Generator = gemini.Generator()
 
-	return Generator.generate(request, options)
+	if Generator: NeuroResponse = Generator.generate(request, options)
+
+	return NeuroResponse

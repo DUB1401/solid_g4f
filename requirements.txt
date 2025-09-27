@@ -1,4 +1,6 @@
+google-genai
 fastapi
 uvicorn
-dublib==0.23.1
-g4f==0.5.3.1
+dotenv
+dublib==0.23.2
+g4f>=0.6.0.0

@@ -36,7 +36,7 @@ class Response:
 
 		self.__Text = None
 		self.__Time = None
-		self.__CurrentTry = 1
+		self.__CurrentTry = 0
 		self.__ErrorsCounter = dict()
 		self.__Messages = list()
 

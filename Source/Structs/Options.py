@@ -28,7 +28,7 @@ class Options:
 		return self.__MaxLength
 
 	@property
-	def model(self) -> str:
+	def model(self) -> str | None:
 		"""Используемая модель нейросети."""
 
 		return self.__Model
@@ -40,8 +40,8 @@ class Options:
 		return True
 	
 	@property
-	def source(self) -> str:
-		"""Генератор контента."""
+	def source(self) -> Literal["gpt4free", "gemini"]:
+		"""Источник нейросети."""
 
 		return self.__Source
 
@@ -64,21 +64,23 @@ class Options:
 	def __init__(self):
 		"""Опции генерации."""
 
-		self.__Source: Literal["g4f"] = "g4f"
+		self.__Source: Literal["gpt4free", "gemini"] = "gpt4free"
 		self.__Language: Languages | None = None
 		self.__MaxLength: int | None = None
 		self.__Timeout: int = 30
 		self.__Tries = 3
-		self.__Model = "deepseek-r1"
+		self.__Model = None
 		self.__ForceProxy = False
 
-	def select_source(self, source: Literal["g4f"]):
+	def select_source(self, source: Literal["gpt4free", "gemini"]):
 		"""
 		Выбирает генератор контента.
 
-		:param source: _description_
-		:type source: Literal["g4f"]
+		:param source: Источник нейросети.
+		:type source: Literal["gpt4free", "gemini"]
 		"""
+
+		if source not in ("gpt4free", "gemini"): raise Exception(f"Source \"{source}\" not found.")
 
 		self.__Source = source
 
@@ -120,11 +122,10 @@ class Options:
 		"""
 		Зазадёт используемую модель.
 
-		:param model: Название модели. Полный список [здесь](https://github.com/gpt4free/gpt4free.github.io/blob/main/docs%2Fproviders-and-models.md). По умолчанию `gpt-4o`.
+		:param model: Название модели. Полный список для `g4f` [здесь](https://github.com/gpt4free/gpt4free.github.io/blob/main/docs%2Fproviders-and-models.md), для `gemini` [тут](https://ai.google.dev/gemini-api/docs/models).
 		:type model: str | None
 		"""
 
-		return
 		self.__Model = model
 
 	def set_timeout(self, timeout: int | None):

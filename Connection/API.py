@@ -1,4 +1,4 @@
-from .Data import Options
+from ..Source.Structs import Options
 
 from dublib.WebRequestor import WebResponse
 
@@ -10,7 +10,7 @@ from typing import Any
 import requests
 
 class Requestor:
-	"""Оператор запросов к нейросети."""
+	"""Оператор запросов к `NeuroHub`."""
 
 	#==========================================================================================#
 	# >>>>> ПРИВАТНЫЕ МЕТОДЫ <<<<< #
@@ -37,7 +37,7 @@ class Requestor:
 
 	def __init__(self, options: Options, host: str | None = None, port: int = 8000):
 		"""
-		Оператор запросов к нейросети.
+		Оператор запросов к `NeuroHub`.
 
 		:param options: Опции генерации.
 		:type options: Options

@@ -3,3 +3,7 @@ __pycache__
 .venv
 # Proxies data.
 Proxies.txt
+# Logs.
+logs.log
+# Enviroment variables.
+.env

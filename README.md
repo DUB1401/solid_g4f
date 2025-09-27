@@ -1,7 +1,10 @@
-# solid_g4f
-**solid_g4f** – это модуль для расширения параметров генерации библиотеки [gpt4free](https://github.com/xtekky/gpt4free) и выноса самого процесса общения с нейросетью в отдельный процесс.
+# NeuroHub
+**NeuroHub** – это модуль для выноса работы с нейросетями в отдельный процесс, поддерживающий библиотеку [gpt4free](https://github.com/xtekky/gpt4free) и прямой доступ к [Google Gemini](https://gemini.google.com).
 
-Поддерживается ротация прокси из списка строк внутри файла _Proxies.txt_ в стандартном формате, а также проверка локализации ответа, длины, ограничение времени ожидания, установка количества повторных попыток генерации, выбор модели.
+Реализована ротация прокси из списка внутри файла _Proxies.txt_ (по умолчанию используются только в случае блокировки запроса), а также проверка локализации и длины ответа, установка ограничения времени ожидания, количества повторных попыток генерации и выбор модели.
+
+> [!NOTE]  
+> Для использования **Gemini** в недоступных регионах требуется установка прокси с флагом обязательного использования.
 
 ## Порядок установки
 1. Клонировать репозиторий.
@@ -45,13 +48,15 @@ uvicorn server:api --port 8000
 
 Отправьте запрос на генерацию, например из вашего скрипта Python.
 ```Python
-from solid_g4f.Connection.API import Options, Requestor
+from NeuroHub.Connection.API import Options, Requestor
 
 # Создание опций запроса.
 Settings = Options()
-Settings.set_max_length(250)
-Settings.set_model("gpt-4o")
-Settings.set_language("ru")
+Settings.select_source("gemini")
+Settings.set_max_length(300)
+Settings.set_model("gemini-2.5-flash")
+# Включение обязательного использования прокси.
+Settings.set_force_proxy(True)
 
 # Отправка запроса на генерацию.
 Master = Requestor(Settings)

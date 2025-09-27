@@ -1,52 +1,17 @@
 from Source.Structs import Options, Languages, Response, Errors
+from Source.Generators.Base import BaseGenerator
 
-from dublib.Methods.Filesystem import ReadTextFile
-from dublib.WebRequestor import Proxy
 from dublib.Polyglot import HTML
 
 import logging
 import random
-import types
-import os
 import re
 
 from g4f.client import Client
 from g4f import errors
 
-#==========================================================================================#
-# >>>>> ВСПОМОГАТЕЛЬНЫЕ СТРУКТУРЫ ДАННЫХ <<<<< #
-#==========================================================================================#
-
-class TimeoutException(Exception): pass
-
-class Generator:
+class Generator(BaseGenerator):
 	"""Обработчик запросов к нейросетям."""
-
-	#==========================================================================================#
-	# >>>>> ПРИВАТНЫЕ МЕТОДЫ <<<<< #
-	#==========================================================================================#
-
-	def __RaiseTimeoutException(self, signum: int, frame: types.FrameType):
-		"""
-		Выбрасывает `TimeoutException`.
-
-		:param signum: Номер сигнала, передаваемый обработчику.
-		:param frame: Текущий стек вызовов в момент прерывания.
-		:raises TimeoutException: Выбрасывается как результат выполнения метода.
-		"""
-
-		raise TimeoutException()
-
-	def __ReadProxy(self):
-		"""Считывает данные прокси из файла `Proxies.txt`."""
-
-		Proxies = list()
-
-		if os.path.exists("Proxies.txt"):
-			Data = ReadTextFile("Proxies.txt", split = "\n")
-			for Line in Data: Proxies.append(Proxy().parse(Line))
-
-		self.__Proxies = tuple(Proxies)
 
 	#==========================================================================================#
 	# >>>>> ПРИВАТНЫЕ МЕТОДЫ ВАЛИДАЦИИ <<<<< #
@@ -87,20 +52,21 @@ class Generator:
 		return text
 
 	#==========================================================================================#
+	# >>>>> ПЕРЕОПРЕДЕЛЯЕМЫЕ МЕТОДЫ <<<<< #
+	#==========================================================================================#
+
+	def _PostInitMethod(self):
+		"""Метод, выполняющийся после инициализации объекта. Служит для переопределения."""
+
+		self.__Client = Client()
+
+	#==========================================================================================#
 	# >>>>> ПУБЛИЧНЫЕ МЕТОДЫ <<<<< #
 	#==========================================================================================#
 
-	def __init__(self):
-		"""Обработчик запросов к нейросетям."""
-
-		self.__Proxies: tuple[Proxy] = tuple()
-		self.__Client = Client()
-
-		self.__ReadProxy()
-
 	def generate(self, request: str, options: Options) -> Response:
 		"""
-		Генерирует ответ нейросети.
+		Отправляет запрос на генерацию к источнику.
 
 		:param request: Текст запроса.
 		:type request: str
@@ -114,9 +80,9 @@ class Generator:
 
 		while CurrentResponse.current_try <= options.tries and not CurrentResponse.text:
 			
-			if self.__Proxies: 
+			if self._Proxies: 
 				if CurrentResponse.get_error_count(Errors.RequestBlocked) or options.force_proxy:
-					self.__Client = Client(proxies = random.choice(self.__Proxies).to_dict())
+					self.__Client = Client(proxies = random.choice(self._Proxies).to_dict())
 
 			try:
 				ResponseData = self.__Client.chat.completions.create(
