@@ -1,13 +1,6 @@
-from typing import Any
-import enum
+from .Languages import Languages
 
-class Languages(enum.Enum):
-	"""Перечисление поддерживаемых языков."""
-
-	Russian = "ru"
-	English = "en"
-
-	Undefined = None
+from typing import Any, Literal
 
 class Options:
 	"""Опции генерации."""
@@ -47,6 +40,12 @@ class Options:
 		return True
 	
 	@property
+	def source(self) -> str:
+		"""Генератор контента."""
+
+		return self.__Source
+
+	@property
 	def timeout(self) -> int:
 		"""Время ожидания ответа."""
 
@@ -65,12 +64,23 @@ class Options:
 	def __init__(self):
 		"""Опции генерации."""
 
+		self.__Source: Literal["g4f"] = "g4f"
 		self.__Language: Languages | None = None
 		self.__MaxLength: int | None = None
 		self.__Timeout: int = 30
 		self.__Tries = 3
-		self.__Model = "gpt-4o"
+		self.__Model = "deepseek-r1"
 		self.__ForceProxy = False
+
+	def select_source(self, source: Literal["g4f"]):
+		"""
+		Выбирает генератор контента.
+
+		:param source: _description_
+		:type source: Literal["g4f"]
+		"""
+
+		self.__Source = source
 
 	def set_force_proxy(self, status: bool | None):
 		"""
@@ -114,7 +124,8 @@ class Options:
 		:type model: str | None
 		"""
 
-		self.__Model = model or "gpt-4o"
+		return
+		self.__Model = model
 
 	def set_timeout(self, timeout: int | None):
 		"""

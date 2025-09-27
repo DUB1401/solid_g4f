@@ -1,8 +1,10 @@
-from Source.Generator import Generator, Options
+from Source.Structs.Options import Options
+from Source.Generators import Generate
 
 from dublib.Methods.Filesystem import ReadTextFile
 
 from typing import Optional
+import logging
 
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
@@ -10,7 +12,13 @@ from fastapi import FastAPI
 
 api = FastAPI()
 
-NeuroGenerator = Generator()
+logging.basicConfig(
+	filename = "logs.log",
+	encoding = "utf-8",
+	level = logging.INFO,
+	format = "%(asctime)s %(levelname)s: %(message)s",
+	datefmt = "%Y-%m-%d %H:%M:%S"
+)
 
 class RequestData(BaseModel):
 	"""Структура запроса."""
@@ -36,6 +44,6 @@ def generate(data: RequestData):
 	CurrentOptions.set_timeout(data.timeout)
 	CurrentOptions.set_model(data.model)
 	CurrentOptions.set_force_proxy(data.proxy)
-	Response = NeuroGenerator.generate(data.request, CurrentOptions)
+	Response = Generate(data.request, CurrentOptions)
 									
 	return Response.to_dict()
