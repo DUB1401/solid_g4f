@@ -159,13 +159,15 @@ class Options:
 		"""
 
 		OptionsDict = {
+			"source": self.__Source,
+			"model": self.__Model,
 			"proxy": self.__ForceProxy,
 			"language": self.__Language.value if self.__Language else None,
 			"length": self.__MaxLength,
-			"timeout": self.__Timeout,
+			"timeout": self.__Timeout
 		}
 
-		for Key in tuple(OptionsDict.keys()):
-			if not OptionsDict[Key]: del OptionsDict[Key]
+		# for Key in tuple(OptionsDict.keys()):
+		# 	if not OptionsDict[Key]: del OptionsDict[Key]
 
 		return OptionsDict

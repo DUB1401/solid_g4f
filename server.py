@@ -4,7 +4,7 @@ from Source.Initializator import *
 
 from dublib.Methods.Filesystem import ReadTextFile
 
-from typing import Optional
+from typing import Optional, Literal
 
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
@@ -22,6 +22,7 @@ class RequestData(BaseModel):
 	tries: Optional[int] = 3
 	timeout: Optional[int] = 30
 	proxy: Optional[bool] = False
+	source: Literal["gpt4free", "gemini"] = "gpt4free"
 
 @api.get("/")
 def generate():		
@@ -36,6 +37,8 @@ def generate(data: RequestData):
 	CurrentOptions.set_timeout(data.timeout)
 	CurrentOptions.set_model(data.model)
 	CurrentOptions.set_force_proxy(data.proxy)
+	CurrentOptions.select_source(data.source)
+
 	Response = Generate(data.request, CurrentOptions)
 									
 	return Response.to_dict()

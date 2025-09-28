@@ -53,7 +53,11 @@ class Generator(BaseGenerator):
 				CurrentResponse.set_text(GeminiResponse.text)
 
 			except httpx.ConnectError: CurrentResponse.push_error(Errors.RequestError)
-			except errors.ClientError: CurrentResponse.push_error(Errors.RequestBlocked)
+
+			except errors.ClientError as ExceptionData:
+				if "RESOURCE_EXHAUSTED" in str(ExceptionData): CurrentResponse.push_error(Errors.RateLimit)
+				else: CurrentResponse.push_error(Errors.RequestBlocked)
+
 			except Exception as ExceptionData:
 				logging.error(str(ExceptionData))
 				CurrentResponse.push_message(str(ExceptionData))
